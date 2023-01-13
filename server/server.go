@@ -4,7 +4,9 @@ import (
 	"context"
 	"log"
 	"net"
+	"net/http"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/rrd1986/grpc-rest-gateway/gen/proto"
 	"google.golang.org/grpc"
 )
@@ -22,6 +24,19 @@ func (s *TestApiServer) GetUserGetUser(ctx context.Context, req *pb.UserRequest)
 }
 
 func main() {
+
+	// Start the Rest server
+	go func() {
+		// mux
+		mux := runtime.NewServeMux()
+
+		// register handle
+		pb.RegisterTestApiHandlerServer(context.Background(), mux, &TestApiServer{})
+
+		// launch a http server
+		log.Fatalln(http.ListenAndServe("localhost:8081", mux))
+
+	}()
 
 	listener, err := net.Listen("tcp", "localhost:8080")
 	if err != nil {
